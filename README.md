@@ -15,6 +15,6 @@ sudo docker build --tag=pymorphy_bot .
 ### Running Docker 
 
 ```
-sudo docker run -d -e TOKEN=<Telegram Bot Token> -e INFO=<Add Info to Bot */info* Command> pymorphy_bot
+sudo docker run -d -e TOKEN=<Telegram Bot Token> -e INFO=<Add Info to Bot /info Command> pymorphy_bot
 ```
 
