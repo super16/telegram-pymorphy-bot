@@ -1,6 +1,6 @@
 # Pymorphy2 Telegram Bot
 
-Telegram [Bot](@zaliznyak_bot) for linguistics morphology analysis. 
+Telegram [Bot](https://t.me/zaliznyak_bot) for linguistics morphology analysis. 
 Reply with morphemes of sent words and can suggest morphemes for 
 unknown words. Works only with russian language and reply with several 
 variants of analysis if available. 
@@ -15,6 +15,6 @@ sudo docker build --tag=pymorphy_bot .
 ### Running Docker 
 
 ```
-sudo docker run -d -e TOKEN=<Telegram Bot Token> -e INFO="<Add Info to Bot /info Command>" pymorphy_bot
+sudo docker run -d -e TOKEN=<Telegram Bot Token> -e INFO=<Add Info to Bot */info* Command> pymorphy_bot
 ```
 
