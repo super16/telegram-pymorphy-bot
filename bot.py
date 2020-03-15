@@ -4,15 +4,16 @@ import pymorphy2
 import nltk
 from telegram.ext import Updater, CommandHandler, MessageHandler
 
-"""Telegram Bot for linguistics morphology analysis. Reply with 
-morphemes of sent words and can suggest morphemes for unknown words. 
-Works only with russian language and reply with several variants of 
-analysis if available. Using awesome pymorphy2 module 
+"""Telegram Bot for linguistics morphology analysis. Reply with
+morphemes of sent words and can suggest morphemes for unknown words.
+Works only with russian language and reply with several variants of
+analysis if available. Using awesome pymorphy2 module
 (https://github.com/kmike/pymorphy2) with OpenCorpora corpus"""
 
-# Language Processing 
+# Language Processing
 nltk.download("punkt")
 morph = pymorphy2.MorphAnalyzer()
+
 
 def gram(p, gr):
     """Generating a string with morphemes to reply"""
@@ -51,33 +52,38 @@ def analysis(update, context):
                 if str(p.tag) in unacceptable:
                     pass
                 elif len(word) == 1:
-                    update.message.reply_text(gram(p, grammems_list), 
-                    parse_mode='HTML')
+                    update.message.reply_text(
+                        gram(p, grammems_list),
+                        parse_mode='HTML')
                     break
                 else:
-                    update.message.reply_text(gram(p, grammems_list), 
-                    parse_mode='HTML')
+                    update.message.reply_text(
+                        gram(p, grammems_list),
+                        parse_mode='HTML')
 
 # Telegram Functions
+
 
 def start(update, context):
     """/start command in bot"""
     update.message.reply_text("Введите слово или текст для \
     морфологического анализа")
 
+
 def info(update, context):
     """/help command in bot"""
     update.message.reply_text(os.environ['INFO'], parse_mode='HTML')
 
+
 def main():
     """Bot backend"""
-    updater = Updater(os.environ['TOKEN'], 
-    use_context=True)
+    updater = Updater(os.environ['TOKEN'], use_context=True)
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("info", info))
     dp.add_handler(MessageHandler(None, analysis))
     updater.start_polling()
-    
+
+
 if __name__ == "__main__":
     main()

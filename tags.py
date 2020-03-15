@@ -1,4 +1,4 @@
-"""Collections of tags from OpenCorpora 
+"""Collections of tags from OpenCorpora
 (http://opencorpora.org/dict.php?act=gram) with normalized meaning to
 reply"""
 
@@ -74,15 +74,15 @@ grammems = {"NOUN": "имя существительное",
 
 # Words with unacceptable tags are not analysed
 
-unacceptable = ("LATN", "PNCT", "NUMB", "NUMB,intg", "NUMB,real", 
+unacceptable = ("LATN", "PNCT", "NUMB", "NUMB,intg", "NUMB,real",
                 "ROMN", "UNKN")
 
 # Methods of analogy analysis
 
-analogies = ("<KnownPrefixAnalyzer>", 
-             "<KnownSuffixAnalyzer>", 
-             "<FakeDictionary>", 
+analogies = ("<KnownPrefixAnalyzer>",
+             "<KnownSuffixAnalyzer>",
+             "<FakeDictionary>",
              "<UnknownPrefixAnalyzer>",
-             "<HyphenAdverbAnalyzer>", 
-             "<HyphenSeparatedParticleAnalyzer>", 
+             "<HyphenAdverbAnalyzer>",
+             "<HyphenSeparatedParticleAnalyzer>",
              "<HyphenatedWordsAnalyzer>")
