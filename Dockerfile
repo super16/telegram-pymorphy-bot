@@ -1,16 +1,16 @@
-FROM python:3.10.2-slim
+FROM python:3.11-slim
 
 WORKDIR /bot-app
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN ["pip", "install", "poetry"]
+
 COPY . /bot-app
 
-RUN pip install --upgrade pip
-
-RUN pip install -r requirements.txt
+RUN ["poetry", "install", "--without", "development"]
 
 EXPOSE 80
 
-CMD ["python3", "-m", "telegram_pymorphy_bot"]
+CMD ["poetry", "run", "python", "-m", "telegram_pymorphy_bot"]

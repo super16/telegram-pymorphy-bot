@@ -1,4 +1,0 @@
-pymorphy2
-nltk
-python-telegram-bot
-pymorphy2-dicts-ru

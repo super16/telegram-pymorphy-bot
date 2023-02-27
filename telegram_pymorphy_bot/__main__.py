@@ -1,19 +1,20 @@
 from json import load
+from logging import error
 from os import environ
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from nltk import download, word_tokenize
-from pymorphy2 import MorphAnalyzer
-from pymorphy2.analyzer import Parse
-from telegram import Update
+from pymorphy3 import MorphAnalyzer
+from pymorphy3.analyzer import Parse
+from telegram import Chat, Message, Update
 from telegram.ext import (
-    CallbackContext,
+    Application,
+    ApplicationBuilder,
     CommandHandler,
-    Dispatcher,
+    ContextTypes,
     MessageHandler,
-    Updater
 )
-from telegram.ext.filters import Filters
+from telegram.ext.filters import COMMAND, TEXT
 
 
 class Bot:
@@ -61,7 +62,15 @@ class Bot:
 
         self.morph: MorphAnalyzer = MorphAnalyzer()
 
-    def analyze(self, update: Update, context: CallbackContext) -> None:
+        self.application: Application = ApplicationBuilder().token(
+            environ['TOKEN']
+        ).build()
+
+    async def analyze(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+    ) -> None:
         """
         Input text handler for morphological analysis.
 
@@ -74,7 +83,17 @@ class Bot:
           context:
             Context object passed to the callback.
         """
-        tokens: List[str] = word_tokenize(update.message.text)
+
+        update_message: Optional[Message] = None
+        message_text: Optional[str] = ""
+
+        if hasattr(update, "message"):
+            update_message = update.message
+
+        if update_message and hasattr(update_message, "text"):
+            message_text = update_message.text
+
+        tokens: List[str] = word_tokenize(message_text, language="russian")
         truncated_tokens: List[str] = []
         characters_count: int = 0
 
@@ -88,30 +107,36 @@ class Bot:
 
         # Empty input
         if not truncated_tokens:
-            update.message.reply_text(
-                "Не удалось обработать текст"
+            await self.send_message(
+                context, update, "Не удалось обработать текст",
             )
         else:
             for word in truncated_tokens:
                 parse_results: List[Parse] = self.morph.parse(word)
                 for p_result in parse_results:
-                    grammems_list: List[str] = [] 
+                    grammems_list: List[str] = []
                     if str(p_result.tag) in self.UNACCEPTABLE:
                         pass
                     elif len(word) == 1:
                         # Weird fallback for one-letter words
-                        update.message.reply_text(
+                        await self.send_message(
+                            context,
+                            update,
                             self.generate_reply(p_result, grammems_list),
-                            parse_mode='HTML',
                         )
                         break
                     else:
-                        update.message.reply_text(
+                        await self.send_message(
+                            context,
+                            update,
                             self.generate_reply(p_result, grammems_list),
-                            parse_mode='HTML',
                         )
 
-    def info(self, update: Update, context: CallbackContext) -> None:
+    async def info(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+    ) -> None:
         """
         Command handler /info callback in Telegram bot.
 
@@ -121,7 +146,7 @@ class Bot:
           context:
             Context object passed to the callback.
         """
-        update.message.reply_text(environ['INFO'], parse_mode='HTML')
+        await self.send_message(context, update, environ['INFO'])
 
     def generate_reply(
         self, parse_result: Parse, grammems_list: list
@@ -152,22 +177,36 @@ class Bot:
             f"{', '.join(grammems_list)})"
         )
 
-    def run(self) -> None:
-        """
-        Method to run bot and poll the requests.
-        """
-        updater: Updater = Updater(environ['TOKEN'], use_context=True)
+    async def send_message(
+        self,
+        context: ContextTypes.DEFAULT_TYPE,
+        update: Update,
+        message: str
+    ) -> None:
 
-        # Add handlers
-        dp: Dispatcher = updater.dispatcher
-        dp.add_handler(CommandHandler("start", self.start))
-        dp.add_handler(CommandHandler("info", self.info))
-        dp.add_handler(MessageHandler(Filters.update, self.analyze))
+        chat: Optional[Chat] = None
+        chat_id: Optional[int] = None
+        if hasattr(update, "effective_chat"):
+            chat = update.effective_chat
 
-        # Start polling
-        updater.start_polling()
+        if chat and hasattr(chat, "id"):
+            chat_id = chat.id
 
-    def start(self, update: Update, context: CallbackContext) -> None:
+        if chat and chat_id:
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    parse_mode="HTML",
+                    text=message,
+                )
+            except Exception as e:
+                error(e)
+
+    async def start(
+        self,
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+    ) -> None:
         """
         Command handler /start callback in Telegram bot.
 
@@ -177,9 +216,29 @@ class Bot:
           context:
             Context object passed to the callback.
         """
-        update.message.reply_text(
+        await self.send_message(
+            context,
+            update,
             "Введите слово или текст для морфологического анализа"
         )
+
+    def run(self) -> None:
+        """
+        Method to run bot and poll the requests.
+        """
+        # Add handlers
+        self.application.add_handler(
+            CommandHandler("start", self.start),
+        )
+        self.application.add_handler(
+            CommandHandler("info", self.info),
+        )
+        self.application.add_handler(
+            MessageHandler(TEXT & (~COMMAND), self.analyze),
+        )
+
+        # Start polling
+        self.application.run_polling()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "telegram-pymorphy-bot"
+version = "0.1.0"
+description = "Linguistics morphological analysis for russian words in Telegram"
+authors = ["Mark <github.com/super16>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "telegram_pymorphy_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-telegram-bot = "^20.1"
+pymorphy3 = "^1.2.0"
+nltk = "^3.8.1"
+
+
+[tool.poetry.group.development.dependencies]
+flake8 = "^6.0.0"
+mypy = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

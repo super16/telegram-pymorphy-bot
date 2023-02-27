@@ -8,9 +8,25 @@ with OpenCorpora corpus.
 
 ## Development mode
 
-```bash
-pip3 install -r requirements.txt
-TOKEN=<Telegram Bot Token> INFO="Add info to bot /info command" python3 -m telegram_pymorphy_bot
+Requires [poetry]().
+
+### Install dependencies
+
+```shell
+poetry install
+```
+
+### Lint
+
+```shell
+poetry run flake8
+poetry run mypy telegram_pymorphy_bot
+```
+
+### Run
+
+```shell
+TOKEN=<Telegram Bot Token> INFO="Add info to bot /info command" poetry run python -m telegram_pymorphy_bot
 ```
 
 ## Docker
