@@ -1,2 +1,5 @@
 __pycache__/
 .mypy_cache
+.ropeproject
+.ruff_cache
+.venv

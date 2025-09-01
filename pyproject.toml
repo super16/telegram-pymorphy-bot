@@ -1,23 +1,49 @@
-[tool.poetry]
+[project]
 name = "telegram-pymorphy-bot"
 version = "0.1.0"
 description = "Linguistics morphological analysis for russian words in Telegram"
-authors = ["Mark <github.com/super16>"]
+authors = [{ name = "Mark <github.com/super16>" }]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "telegram_pymorphy_bot"}]
+requires-python = ">=3.13.3"
+dependencies = ["python-telegram-bot==22.3", "pymorphy3==2.0.4", "nltk==3.9.1"]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-python-telegram-bot = "^21.4"
-pymorphy3 = "^2.0.2"
-nltk = "^3.9.1"
+[dependency-groups]
+dev = ["mypy==1.17.1", "ruff==0.12.11"]
 
+[tool.ruff]
+extend-exclude = ["tests"]
+line-length = 79
+target-version = "py313"
 
-[tool.poetry.group.development.dependencies]
-flake8 = "^7.1.1"
-mypy = "^1.11.2"
+[tool.ruff.lint]
+ignore = ["S314"]
+select = [
+    "A",
+    "ANN",
+    "ASYNC",
+    "B",
+    "BLE",
+    "C4",
+    "COM",
+    "E",
+    "F",
+    "FBT",
+    "I",
+    "ICN",
+    "N",
+    "Q",
+    "PL",
+    "RET",
+    "RUF",
+    "S",
+    "SIM",
+    "SLF",
+    "T20",
+    "UP",
+    "W",
+    "YTT",
+]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff.lint.mccabe]
+max-complexity = 10

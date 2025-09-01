@@ -1,12 +1,12 @@
 from json import load
 from logging import error
 from os import environ
-from typing import Dict, List, Optional, Tuple
 
 from nltk import download, word_tokenize
 from pymorphy3 import MorphAnalyzer
 from pymorphy3.analyzer import Parse
 from telegram import Chat, Message, Update
+from telegram.error import TelegramError
 from telegram.ext import (
     Application,
     ApplicationBuilder,
@@ -27,26 +27,28 @@ class Bot:
     """
 
     # Methods of analogy analysis
-    ANALOGIES: Tuple[str, ...] = (
+    ANALOGIES: tuple[str, ...] = (
         "KnownPrefixAnalyzer",
         "KnownSuffixAnalyzer",
         "FakeDictionary",
         "UnknownPrefixAnalyzer",
         "HyphenAdverbAnalyzer",
         "HyphenSeparatedParticleAnalyzer",
-        "HyphenatedWordsAnalyzer"
+        "HyphenatedWordsAnalyzer",
     )
 
     # Words with unacceptable tags are not analysed
-    UNACCEPTABLE: Tuple[str, ...] = (
+    UNACCEPTABLE: tuple[str, ...] = (
         "LATN",
         "PNCT",
         "NUMB",
         "NUMB,intg",
         "NUMB,real",
         "ROMN",
-        "UNKN"
+        "UNKN",
     )
+
+    MAX_CHARACTERS_LENGTH = 64
 
     def __init__(self) -> None:
         """
@@ -57,13 +59,13 @@ class Bot:
         # Collections of tags from OpenCorpora
         # (http://opencorpora.org/dict.php?act=gram)
         #  with readable meaning in Russian to reply
-        with open("telegram_pymorphy_bot/grammems.json", "r") as json_file:
-            self.GRAMMEMS: Dict[str, str] = load(json_file)
+        with open("telegram_pymorphy_bot/grammems.json") as json_file:
+            self.GRAMMEMS: dict[str, str] = load(json_file)
 
         self.morph: MorphAnalyzer = MorphAnalyzer()
 
         self.application: Application = ApplicationBuilder().token(
-            environ['TOKEN']
+            environ["TOKEN"],
         ).build()
 
     async def analyze(
@@ -84,8 +86,8 @@ class Bot:
             Context object passed to the callback.
         """
 
-        update_message: Optional[Message] = None
-        message_text: Optional[str] = ""
+        update_message: Message | None = None
+        message_text: str | None = ""
 
         if hasattr(update, "message"):
             update_message = update.message
@@ -93,28 +95,27 @@ class Bot:
         if update_message and hasattr(update_message, "text"):
             message_text = update_message.text
 
-        tokens: List[str] = word_tokenize(message_text, language="russian")
-        truncated_tokens: List[str] = []
+        tokens: list[str] = word_tokenize(message_text, language="russian")
+        truncated_tokens: list[str] = []
         characters_count: int = 0
 
         for token in tokens:
             characters_count += len(token)
-            if characters_count > 64:
+            if characters_count > self.MAX_CHARACTERS_LENGTH:
                 break
-            else:
-                if token not in truncated_tokens:
-                    truncated_tokens.append(token)
+            if token not in truncated_tokens:
+                truncated_tokens.append(token)
 
         # Empty input
         if not truncated_tokens:
             await self.send_message(
-                context, update, "Не удалось обработать текст",
+                context, update, "Не удалось обработать текст", # noqa: RUF001
             )
         else:
             for word in truncated_tokens:
-                parse_results: List[Parse] = self.morph.parse(word)
+                parse_results: list[Parse] = self.morph.parse(word)
                 for p_result in parse_results:
-                    grammems_list: List[str] = []
+                    grammems_list: list[str] = []
                     if str(p_result.tag) in self.UNACCEPTABLE:
                         pass
                     elif len(word) == 1:
@@ -146,10 +147,10 @@ class Bot:
           context:
             Context object passed to the callback.
         """
-        await self.send_message(context, update, environ['INFO'])
+        await self.send_message(context, update, environ["INFO"])
 
     def generate_reply(
-        self, parse_result: Parse, grammems_list: list
+        self, parse_result: Parse, grammems_list: list,
     ) -> str:
         """
         Generating a string with morphemes to reply.
@@ -162,7 +163,7 @@ class Bot:
           A reply string with found grammems and label
           that analysis is presumptive.
         """
-        proposal: str = ''
+        proposal: str = ""
 
         for method in parse_result.methods_stack:
             if method[0].__class__.__name__ in self.ANALOGIES:
@@ -181,11 +182,11 @@ class Bot:
         self,
         context: ContextTypes.DEFAULT_TYPE,
         update: Update,
-        message: str
+        message: str,
     ) -> None:
 
-        chat: Optional[Chat] = None
-        chat_id: Optional[int] = None
+        chat: Chat | None = None
+        chat_id: int | None = None
         if hasattr(update, "effective_chat"):
             chat = update.effective_chat
 
@@ -199,7 +200,7 @@ class Bot:
                     parse_mode="HTML",
                     text=message,
                 )
-            except Exception as e:
+            except TelegramError as e:
                 error(e)
 
     async def start(
@@ -219,7 +220,7 @@ class Bot:
         await self.send_message(
             context,
             update,
-            "Введите слово или текст для морфологического анализа"
+            "Введите слово или текст для морфологического анализа",
         )
 
     def run(self) -> None:
@@ -243,6 +244,6 @@ class Bot:
 
 if __name__ == "__main__":
     # Get Punkt tokenizer models
-    download("punkt")
+    download("punkt_tab")
     telegram_bot = Bot()
     telegram_bot.run()

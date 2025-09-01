@@ -1,16 +1,13 @@
-FROM python:3.11-slim
+FROM python:3.13-slim-trixie
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /bot-app
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-RUN ["pip", "install", "poetry"]
-
-COPY . /bot-app
-
-RUN ["poetry", "install", "--without", "development"]
+ADD . /bot-app
+RUN ["uv", "sync", "--locked"]
 
 EXPOSE 80
-
-CMD ["poetry", "run", "python", "-m", "telegram_pymorphy_bot"]
+CMD ["uv", "run", "python", "-m", "telegram_pymorphy_bot"]
