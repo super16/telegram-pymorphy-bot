@@ -6,7 +6,7 @@ authors = [{ name = "Mark <github.com/super16>" }]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.13.3"
-dependencies = ["python-telegram-bot==22.3", "pymorphy3==2.0.4", "nltk==3.9.1"]
+dependencies = ["python-telegram-bot==22.3", "pymorphy3==2.0.4", "nltk==3.9.4"]
 
 [dependency-groups]
 dev = ["mypy==1.17.1", "ruff==0.12.11"]
